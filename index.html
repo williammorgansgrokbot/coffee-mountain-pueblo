@@ -256,7 +256,7 @@ body.exploring #hud,body.exploring #hintBub{display:none!important}
 #xHint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100% - 300px);padding:7px 14px;border-radius:999px;background:rgba(40,22,9,.72);border:1.5px solid rgba(233,185,73,.6);font-size:13px;font-weight:600;text-align:center;transition:opacity .8s}
 #xHint.fade{opacity:0}
 #xPlaque{position:absolute;left:50%;bottom:calc(64px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(440px,calc(100% - 300px));padding:10px 16px 12px;border-radius:14px;text-align:center}
-#xPlaque b{display:block;font:700 17px/1.2 Georgia,serif;color:#ffe9b0;margin-bottom:4px}#xPlaque span{font-size:13.5px;line-height:1.35}#xPlaque.hidden{display:none}
+#xPlaque b{display:block;font:700 17px/1.2 Georgia,serif;color:#ffe9b0;margin-bottom:4px}#xPlaque span{font-size:13.5px;line-height:1.35;white-space:pre-line}#xPlaque.long{width:min(520px,calc(100% - 280px));padding:12px 18px 14px}#xPlaque.long span{font:600 12.5px/1.45 Georgia,serif;letter-spacing:.03em}#xPlaque.hidden{display:none}
 #xJoy{display:none;position:absolute;left:calc(22px + env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,rgba(255,243,214,.10),rgba(40,22,9,.38));border:2.5px solid rgba(255,243,214,.7);box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none}
 #xui.touch #xJoy{display:block}
 #xKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#ffe39a,#efb340);border:2.5px solid #fff3cf;box-shadow:0 3px 0 #9a5c1c,0 4px 10px rgba(0,0,0,.3)}
@@ -2571,6 +2571,174 @@ function makeChapel(o) {
   }
   CM.churchLocal = { W, D, ZF, SX, ax0 };
 }
+CM.PLAQUE_LINES = ["RECONOCIMIENTO A", "LOS MISIONEROS", "EDGARD Y DORIS MENDOZA", "FUNDADORES DE LA IGLESIA", "AMOR Y FE", "FUNDADA EN 5-7-03", "CON AMOR FE DEDICACION Y SACRIFICIO", "BECAUSE GOD IS GOOD", "ALL THE TIME"];
+function plaqueTex() {
+  var W = 1536, H = 1152, cv = document.createElement("canvas");
+  cv.width = W;
+  cv.height = H;
+  var g = cv.getContext("2d");
+  g.fillStyle = "#2a2b2e";
+  g.fillRect(0, 0, W, H);
+  var img = g.getImageData(0, 0, W, H), d = img.data, i, x, y, n;
+  for (i = 0; i < d.length; i += 4) {
+    n = Math.sin(i * 31e-5) * 7 + Math.cos(i * 11e-4) * 5 + i * 9301 % 17 - 8;
+    d[i] = Math.max(0, Math.min(255, d[i] + n));
+    d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + n * 0.95));
+    d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n * 0.85));
+  }
+  g.putImageData(img, 0, 0);
+  var vg = g.createRadialGradient(W * 0.5, H * 0.45, 80, W * 0.5, H * 0.5, W * 0.72);
+  vg.addColorStop(0, "rgba(40,40,42,0)");
+  vg.addColorStop(1, "rgba(0,0,0,0.45)");
+  g.fillStyle = vg;
+  g.fillRect(0, 0, W, H);
+  var m = 48, t = 28;
+  function bevel(x0, y0, x1, y1) {
+    g.fillStyle = "rgba(210,210,205,0.38)";
+    g.beginPath();
+    g.moveTo(x0, y0);
+    g.lineTo(x1, y0);
+    g.lineTo(x1 - t, y0 + t);
+    g.lineTo(x0 + t, y0 + t);
+    g.closePath();
+    g.fill();
+    g.fillStyle = "rgba(200,200,196,0.28)";
+    g.beginPath();
+    g.moveTo(x0, y0);
+    g.lineTo(x0 + t, y0 + t);
+    g.lineTo(x0 + t, y1 - t);
+    g.lineTo(x0, y1);
+    g.closePath();
+    g.fill();
+    g.fillStyle = "rgba(0,0,0,0.62)";
+    g.beginPath();
+    g.moveTo(x0, y1);
+    g.lineTo(x1, y1);
+    g.lineTo(x1 - t, y1 - t);
+    g.lineTo(x0 + t, y1 - t);
+    g.closePath();
+    g.fill();
+    g.fillStyle = "rgba(0,0,0,0.5)";
+    g.beginPath();
+    g.moveTo(x1, y0);
+    g.lineTo(x1, y1);
+    g.lineTo(x1 - t, y1 - t);
+    g.lineTo(x1 - t, y0 + t);
+    g.closePath();
+    g.fill();
+  }
+  bevel(m, m, W - m, H - m);
+  g.strokeStyle = "rgba(170,170,166,0.35)";
+  g.lineWidth = 3;
+  g.strokeRect(m + t + 4, m + t + 4, W - 2 * (m + t + 4), H - 2 * (m + t + 4));
+  function bar(x2, y2, w, h) {
+    g.fillStyle = "rgba(0,0,0,0.7)";
+    g.fillRect(x2 + 2, y2 + 2, w, h);
+    g.fillStyle = "rgba(230,230,224,0.4)";
+    g.fillRect(x2 - 1, y2 - 1, w, h);
+    var lg = g.createLinearGradient(x2, y2, x2, y2 + h);
+    lg.addColorStop(0, "#deded8");
+    lg.addColorStop(0.5, "#b8b8b3");
+    lg.addColorStop(1, "#8c8c88");
+    g.fillStyle = lg;
+    g.fillRect(x2, y2, w, h);
+  }
+  var cx = W - m - t - 70, cy = m + t + 78;
+  bar(cx - 8, cy - 58, 16, 116);
+  bar(cx - 34, cy - 18, 68, 16);
+  function stamp(text, x2, y2, size, weight) {
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.font = (weight || "700") + " " + size + 'px "Palatino Linotype", Palatino, "Times New Roman", Times, Georgia, serif';
+    g.fillStyle = "rgba(0,0,0,0.78)";
+    g.fillText(text, x2 + Math.max(1.5, size * 0.028), y2 + Math.max(1.6, size * 0.034));
+    g.fillStyle = "rgba(255,255,250,0.55)";
+    g.fillText(text, x2 - Math.max(1, size * 0.02), y2 - Math.max(1, size * 0.024));
+    var lg = g.createLinearGradient(x2, y2 - size * 0.42, x2, y2 + size * 0.42);
+    lg.addColorStop(0, "#f7f6f1");
+    lg.addColorStop(0.4, "#e4e3dc");
+    lg.addColorStop(1, "#c2c1bb");
+    g.fillStyle = lg;
+    g.fillText(text, x2, y2);
+  }
+  var cxT = W * 0.5, L = CM.PLAQUE_LINES;
+  stamp(L[0], cxT, 200, 54, "600");
+  stamp(L[1], cxT, 272, 54, "600");
+  stamp(L[2], cxT, 390, 80, "700");
+  stamp(L[3], cxT, 478, 44, "600");
+  stamp(L[4], cxT, 590, 96, "700");
+  stamp(L[5], cxT, 680, 44, "600");
+  stamp(L[6], cxT, 768, 42, "600");
+  stamp(L[7], cxT, 890, 66, "700");
+  stamp(L[8], cxT, 980, 66, "700");
+  var tex = new THREE.CanvasTexture(cv);
+  if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 16;
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+function makeChurchPlaque(ch) {
+  var L = CM.churchLocal;
+  if (!L || !ch) return;
+  setXF(ch.ox, ch.y0, ch.oz, ch.ry);
+  var cands = [[2.85, L.ZF + 3.15], [3.25, L.ZF + 2.6], [2.4, L.ZF + 3.7], [3.55, L.ZF + 3.5], [-2.55, L.ZF + 3.15], [2.95, L.ZF + 4.4], [3.15, L.ZF + 2.15]];
+  var pick = null, best = null, bestS = -99, i;
+  for (i = 0; i < cands.length; i++) {
+    var lx = cands[i][0], lz = cands[i][1], wx = wX(lx, lz), wz = wZ(lx, lz);
+    var f = { x: wx, z: wz, ry: ch.ry, hx: 0.42, hz: 0.58 };
+    var g = roadGap(f).gap, n = nodeGap(f), sc = Math.min(g - 0.7, n + 0.2);
+    if (sc > bestS) {
+      bestS = sc;
+      best = { lx, lz, wx, wz, g, n };
+    }
+    if (g >= 0.7 && n >= 0.15) {
+      pick = best;
+      break;
+    }
+  }
+  if (!pick) pick = best;
+  if (!pick || pick.g < 0.45) return;
+  var y0 = CM.meshH(pick.wx, pick.wz);
+  setXF(pick.wx, y0, pick.wz, ch.ry);
+  var red = [0.72, 0.2, 0.16], white = [1.18, 1.18, 1.14], hs = 0.34, cap = 0.4, bodyH = 0.86, capH = 0.08, metal = [0.16, 0.16, 0.17];
+  box(BLD.plain, -hs, -0.45, -hs, hs, bodyH, hs, red, 1);
+  box(BLD.plain, -cap, bodyH - 0.01, -cap, cap, bodyH + capH, cap, white, 1);
+  box(BLD.plain, -(cap - 0.028), bodyH + capH - 0.012, -(cap - 0.028), cap - 0.028, bodyH + capH + 6e-3, cap - 0.028, shade(white, 0.96), 1);
+  var tilt = 0.48, pw = 0.66, pd = 0.52, pt = 0.016, base = bodyH + capH + Math.sin(tilt) * pd / 2 + 0.014;
+  function plat(x, yo, z) {
+    var c3 = Math.cos(tilt), s = Math.sin(tilt);
+    return [x, base + yo * c3 - z * s, yo * s + z * c3];
+  }
+  var a = plat(-pw / 2, 0, -pd / 2), b = plat(pw / 2, 0, -pd / 2), c = plat(pw / 2, 0, pd / 2), d = plat(-pw / 2, 0, pd / 2);
+  var a2 = plat(-pw / 2, -pt, -pd / 2), b2 = plat(pw / 2, -pt, -pd / 2), c2 = plat(pw / 2, -pt, pd / 2), d22 = plat(-pw / 2, -pt, pd / 2);
+  quad(BLD.plain, a2, b2, c2, d22, metal, 1, true);
+  quad(BLD.plain, a, b, b2, a2, metal, 1, true);
+  quad(BLD.plain, b, c, c2, b2, metal, 1, true);
+  quad(BLD.plain, c, d, d22, c2, metal, 1, true);
+  quad(BLD.plain, d, a, a2, d22, metal, 1, true);
+  var fz = -0.62, fenceOk = pick.lz + fz > L.ZF - 0.2;
+  if (fenceOk) {
+    var fw = 0.95, fh = 1.08, rw = [0.86, 0.28, 0.2];
+    for (var sx = -fw; sx <= fw + 1e-3; sx += 0.12) box(BLD.plain, sx - 0.018, -0.2, fz - 0.016, sx + 0.018, fh, fz + 0.016, rw, 0.5);
+    box(BLD.plain, -fw - 0.04, fh - 0.06, fz - 0.025, fw + 0.04, fh + 0.02, fz + 0.025, shade(rw, 0.92), 0.5);
+    box(BLD.plain, -fw - 0.04, 0.4, fz - 0.025, fw + 0.04, 0.48, fz + 0.025, shade(rw, 0.92), 0.5);
+    box(BLD.plain, -fw - 0.04, -0.15, fz - 0.025, fw + 0.04, -0.08, fz + 0.025, shade(rw, 0.85), 0.5);
+  }
+  var mid = plat(0, 0, 0);
+  var ptex = plaqueTex();
+  var mesh = new THREE.Mesh(new THREE.PlaneGeometry(pw, pd), new THREE.MeshStandardMaterial({ map: ptex, roughness: 0.38, metalness: 0.45, emissive: 16777215, emissiveMap: ptex, emissiveIntensity: 0.22 }));
+  mesh.position.set(wX(mid[0], mid[2]), y0 + mid[1] + 3e-3, wZ(mid[0], mid[2]));
+  mesh.rotation.order = "YXZ";
+  mesh.rotation.y = ch.ry;
+  mesh.rotation.x = -Math.PI / 2 + tilt;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+  BLOCK.push({ x: pick.wx, z: pick.wz, r: 0.7 });
+  CM.churchPlaque = { x: pick.wx, z: pick.wz, y: y0, ry: ch.ry, lx: pick.lx, lz: pick.lz, g: pick.g, n: pick.n, mesh, fence: fenceOk };
+}
 function churchExtras(ch) {
   var L = CM.churchLocal;
   if (!L) return;
@@ -2790,6 +2958,7 @@ CM.buildSettlements = function() {
     var c = Math.cos(ch.ry), s = Math.sin(ch.ry), dz = 6 + 1.2;
     CM.churchS = { x: ch.ox + s * dz - 0.6, y: ch.y0, z: ch.oz + c * dz - 4.2 };
     churchExtras(ch);
+    makeChurchPlaque(ch);
   } else CM.churchS = { x: 0, y: CM.meshH(0, 0), z: 0 };
   var co = CM.place3D("coop", T2.x + 17, T2.z - 2, 0, 12, { P: { hx: 5.8, hz: 5.15, cz: 1 } });
   if (co) {
@@ -2842,6 +3011,7 @@ CM.buildSettlements = function() {
     scene.add(m);
     CM.pMeshes.push(m);
   });
+  if (CM.churchPlaque && CM.churchPlaque.mesh) CM.pMeshes.push(CM.churchPlaque.mesh);
   CM.pStats = { buildings: BUILDS.length, tris: CM.pMeshes.reduce(function(s2, m) {
     return s2 + m.geometry.attributes.position.count / 3;
   }, 0) | 0, windows: CM.winSpots.length };
@@ -3494,7 +3664,7 @@ CM.X = (function() {
   var EYE = 1.6, RAD = 0.32, WALK = 2.6, RUN = 5.2;
   var pos = { x: 0, z: 0 }, eyeY = 0, yaw = 0, pitch = 0, fov = 64, bobP = 0, stepN = 0, glide = null, stuck = 0, ring = null, wasPaused = true, prevSong = null, goalOut = null;
   var keys = {}, joy = { x: 0, y: 0, id: null }, look = null, EUL = new THREE.Euler(0, 0, 0, "YXZ");
-  var DET = null, COLS = [], LCOR = [], PL = [], plaqueOn = null;
+  var DET = null, COLS = [], LCOR = [], PL = [], plaqueOn = null, plaqueHold = 0, plaqueLock = false;
   var isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
   var PLACES = null;
   function places() {
@@ -3526,14 +3696,14 @@ CM.X = (function() {
       },
       chapel: {
         id: "chapel",
-        name: "Capilla de la Cumbre",
-        sub: "The summit chapel",
+        name: "Iglesia Amor y Fe",
+        sub: "The summit church",
         x: ch ? ch.ox - 3 : 0,
         z: ch ? ch.oz + 2 : 0,
         R: 26,
         pl: 0,
         ch,
-        plaque: ["Capilla de la Cumbre", "Cream block walls, teal trim and a tin roof on the very top of the mountain. Sunday dinners happen under the shelter next door."]
+        plaque: ["Iglesia Amor y Fe", (CM.PLAQUE_LINES || []).join("\n")]
       }
     };
     return PLACES;
@@ -3689,6 +3859,11 @@ CM.X = (function() {
     (CM.PROPS || []).forEach(function(f) {
       if (Math.hypot(f.x - P.x, f.z - P.z) < R + 6) addCirc(f.x, f.z, Math.max(0.35, Math.min(f.hx || 0.6, f.hz || 0.6) * 0.8));
     });
+    if (CM.churchPlaque && Math.hypot(CM.churchPlaque.x - P.x, CM.churchPlaque.z - P.z) < R + 6) {
+      var pl = CM.churchPlaque;
+      addCirc(pl.x, pl.z, 0.5);
+      if (pl.fence) addOBB(pl.x, pl.z, pl.ry, 0.95, 0.12, 0, -0.62);
+    }
     if (CM.ceibaPos && Math.hypot(CM.ceibaPos.x - P.x, CM.ceibaPos.z - P.z) < R + 6) addCirc(CM.ceibaPos.x, CM.ceibaPos.z, 1.15);
     if (CM.truckS && Math.hypot(CM.truckS.x - P.x, CM.truckS.z - P.z) < R + 6) addCirc(CM.truckS.x, CM.truckS.z, 1.7);
   }
@@ -4096,11 +4271,11 @@ CM.X = (function() {
     var sv = { b: AOY.base, t: AOY.top };
     AOY.base = -99;
     AOY.top = 99;
-    CM.BUILDS.forEach(function(f2) {
-      if (f2.kind === "lamp" || !f2.dim) return;
-      if (Math.hypot(f2.ox - P.x, f2.oz - P.z) > P.R + 8) return;
-      houseDetail(f2);
-      if (f2.dim.chapel) chapelInterior(f2);
+    CM.BUILDS.forEach(function(f) {
+      if (f.kind === "lamp" || !f.dim) return;
+      if (Math.hypot(f.ox - P.x, f.oz - P.z) > P.R + 8) return;
+      houseDetail(f);
+      if (f.dim.chapel) chapelInterior(f);
     });
     if (P.id !== "chapel") {
       pila(P);
@@ -4113,9 +4288,13 @@ CM.X = (function() {
         addOBB(b.x, b.z, ry, 0.85, 0.25);
       }
     }
-    if (P.ch && P.id === "chapel") {
-      var f = P.ch, d = f.dim, o = { x: f.ox, z: f.oz, c: Math.cos(f.ry), s: Math.sin(f.ry) }, q = toW(o, d.W + 1.4, d.ZF + 1.2);
-      plaque(P, P.plaque, { x: q[0], z: q[1], y: CM.meshH(q[0], q[1]), ry: f.ry });
+    if (P.id === "chapel") {
+      var pl = CM.churchPlaque;
+      if (pl) {
+        addCirc(pl.x, pl.z, 0.5);
+        if (pl.fence) addOBB(pl.x, pl.z, pl.ry, 0.95, 0.12, 0, -0.62);
+        PL.push({ x: pl.x, z: pl.z, t: P.plaque, long: true });
+      }
     } else plaque(P, P.plaque);
     sprites(P);
     if (P.id !== "chapel") cobbleStreets(P);
@@ -4384,7 +4563,7 @@ CM.X = (function() {
       f0: camera.fov,
       f1: camera.aspect < 1 ? 62 : camera.aspect > 1.9 ? 42 : 45
     };
-    ui2.plaque.classList.add("hidden");
+    hidePlaque();
     ui2.root.classList.add("leaving");
     stopAmb();
     if (ring) ring.visible = false;
@@ -4434,10 +4613,38 @@ CM.X = (function() {
     fov = U.clamp(fov * Math.exp(U.clamp(e.deltaY, -120, 120) * 15e-4), 35, 80);
   };
   var rc = new THREE.Raycaster(), nd2 = new THREE.Vector2();
+  function showPlaque(pl) {
+    if (!ui2.plaque) return;
+    plaqueOn = pl;
+    ui2.plaque.querySelector("b").textContent = pl.t[0];
+    ui2.plaque.querySelector("span").textContent = pl.t[1];
+    ui2.plaque.classList.toggle("long", !!pl.long);
+    ui2.plaque.classList.remove("hidden");
+  }
+  function hidePlaque() {
+    plaqueOn = null;
+    plaqueHold = 0;
+    if (ui2.plaque) {
+      ui2.plaque.classList.add("hidden");
+      ui2.plaque.classList.remove("long");
+    }
+  }
   function tapGround(x, y) {
     var r = canvas.getBoundingClientRect();
     nd2.set((x - r.left) / r.width * 2 - 1, -(y - r.top) / r.height * 2 + 1);
     rc.setFromCamera(nd2, camera);
+    if (CM.churchPlaque && CM.churchPlaque.mesh) {
+      var ph = rc.intersectObject(CM.churchPlaque.mesh, false)[0];
+      if (ph && ph.distance < 16) {
+        var pl = null;
+        for (var i = 0; i < PL.length; i++) if (PL[i].long) pl = PL[i];
+        if (pl) {
+          showPlaque(pl);
+          plaqueHold = 6;
+          return true;
+        }
+      }
+    }
     var o = rc.ray.origin, d = rc.ray.direction, hit = null, prev = 0;
     var objs = (CM.pMeshes || []).concat(DET ? DET.meshes : []);
     var bh = rc.intersectObjects(objs, false)[0], maxT = bh ? bh.distance : 70;
@@ -4618,15 +4825,16 @@ CM.X = (function() {
     camera.updateMatrixWorld();
     _l.set(pos.x + fx * Math.cos(pitch) * 8, eyeY + Math.sin(pitch) * 8, pos.z + fz * Math.cos(pitch) * 8);
     syncShared(_l);
-    var near = null;
-    for (var i = 0; i < PL.length; i++) if (Math.hypot(PL[i].x - pos.x, PL[i].z - pos.z) < 3.2) near = PL[i];
-    if (near !== plaqueOn) {
-      plaqueOn = near;
+    if (!plaqueLock) {
+      var near = null;
+      for (var i = 0; i < PL.length; i++) if (Math.hypot(PL[i].x - pos.x, PL[i].z - pos.z) < 3.4) near = PL[i];
       if (near) {
-        ui2.plaque.querySelector("b").textContent = near.t[0];
-        ui2.plaque.querySelector("span").textContent = near.t[1];
-        ui2.plaque.classList.remove("hidden");
-      } else ui2.plaque.classList.add("hidden");
+        showPlaque(near);
+        plaqueHold = 0;
+      } else if (plaqueHold > 0) {
+        plaqueHold -= dt;
+        if (plaqueHold <= 0) hidePlaque();
+      } else if (plaqueOn) hidePlaque();
     }
     if (P.id === "chapel") {
       amb.bellT += dt;
@@ -4766,6 +4974,40 @@ CM.X = (function() {
     var f = P.ch, o = { x: f.ox, z: f.oz, c: Math.cos(f.ry), s: Math.sin(f.ry) };
     return { front: toW(o, 0, f.dim.D + 3), inside: toW(o, 0.3, f.dim.D - 1), ry: f.ry };
   };
+  X.lockPlaque = function(v) {
+    plaqueLock = !!v;
+    if (v) hidePlaque();
+  };
+  X.gotoPlaque = function(kind) {
+    var p = CM.churchPlaque;
+    if (!p || !X.on) return null;
+    var s = Math.sin(p.ry), c = Math.cos(p.ry);
+    if (kind === "wide") {
+      var f = X.place && X.place.ch, o = f ? { x: f.ox, z: f.oz, c: Math.cos(f.ry), s: Math.sin(f.ry) } : null;
+      if (o) {
+        var q = toW(o, 1.15, p.lz + 2.5), look2 = toW(o, 1.7, 7.4);
+        pos.x = q[0];
+        pos.z = q[1];
+        yaw = Math.atan2(-(look2[0] - pos.x), -(look2[1] - pos.z));
+        pitch = -0.22;
+      } else {
+        pos.x = p.x + s * 2.5 - c * 1.4;
+        pos.z = p.z + c * 2.5 + s * 1.4;
+        yaw = p.ry + 0.28;
+        pitch = -0.22;
+      }
+      hidePlaque();
+    } else {
+      pos.x = p.x + s * 1.15;
+      pos.z = p.z + c * 1.15;
+      yaw = p.ry;
+      pitch = -0.42;
+      showPlaque({ x: p.x, z: p.z, t: X.place.plaque, long: true });
+      plaqueHold = 8;
+    }
+    eyeY = groundAt(pos.x, pos.z) + EYE;
+    return { x: pos.x, z: pos.z, y: eyeY, yaw, pitch, lx: p.lx, lz: p.lz, fence: p.fence };
+  };
   X.houseNear = function() {
     var best = null, bd = 1e9;
     CM.BUILDS.forEach(function(f) {
@@ -4862,7 +5104,7 @@ CM.game = (function() {
     nd("village", "village", CM.V.x, CM.V.z, "Village");
     nd("mill", "mill", CM.M.x, CM.M.z, "Wet Mill");
     var bl = B.pts[B.pts.length - 1];
-    nd("church", "church", bl[0], bl[1], "Summit Chapel");
+    nd("church", "church", bl[0], bl[1], "Iglesia Amor y Fe");
     cutTrail(A, "coop", "village", []);
     cutTrail(B, "village", "church", [{ f: 0.5, id: "cumbre" }]);
     cutTrail(C, "coop", "church", [{ f: 0.2, id: "mirador" }, { f: 0.44, id: "cedros" }, { f: 0.7, id: "nubes" }]);
@@ -5087,7 +5329,7 @@ CM.game = (function() {
     2: ["Trails are <b>one donkey wide</b>. Meet head-on and both donkeys dig in. Tap one to back it up to a passing spot <b>P</b>.", "Tap a <b>P</b> twice while routing to <b>hold</b> there until the way ahead is clear."],
     3: ["Trains carry 2 sacks per donkey. Leaving the Co-op, they load <b>supplies</b> for any crate badge on their route.", "Tap a <b>gate</b> at a junction to close that trail. Donkeys wait there instead of jamming."],
     4: ["Market day! Same-direction traffic queues. Stagger departures with the <b>\u23F1 delay</b> button."],
-    5: ["Feast day! Take food up to the <b>Summit Chapel</b>. Keep the coffee fresh."]
+    5: ["Feast day! Take food up to the <b>Iglesia Amor y Fe</b>. Keep the coffee fresh."]
   };
   var G2 = null, dayIdx = 0, timeScale = 1, paused = true, sel = null, draft = null, delayPick = 0, emotes = [], tipStep = 0, tipShown = true;
   var prog = { best: {} };
@@ -7648,7 +7890,7 @@ CM.story = (function() {
     },
     5: {
       intro: [
-        ["d5_a", null, "Tonight is the Feast at the summit chapel. The whole mountain is picking.", "zl"],
+        ["d5_a", null, "Tonight is the Feast at Iglesia Amor y Fe. The whole mountain is picking.", "zl"],
         ["d5_a", TITO, "We need food for the feast, tools for the farms, and every sack we can carry.", "zl"],
         ["d5_b", TITO, "Five teams, one mountain. Lanterns on when the sun goes down.", "pl"],
         ["d5_b", TITO, "Let\u2019s light the way up. \xA1Vamos a la fiesta!", "pl"]
