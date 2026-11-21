@@ -551,10 +551,10 @@ CM.buildTrails = function() {
   var cb = [[V.x, V.z]].concat(decimate(wb.pts, wb.turns, 7));
   cb.push([0, 7.5]);
   var B = makeTrail("village-summit", cb, HW, { passing: fracTurns(wb, cb, 0.6) });
-  var wc = walkTrail(T.x - 18, T.z - 14, 200, 1.78, 2.55, 1, 0.21, 10);
-  var cc = [[T.x - 4, T.z - 4]].concat(decimate(wc.pts, wc.turns, 7));
+  var wc2 = walkTrail(T.x - 18, T.z - 14, 200, 1.78, 2.55, 1, 0.21, 10);
+  var cc = [[T.x - 4, T.z - 4]].concat(decimate(wc2.pts, wc2.turns, 7));
   cc.push([-5, 5.5]);
-  var C = makeTrail("town-westfarms-summit", cc, HW, { passing: fracTurns(wc, cc, 0.6) });
+  var C = makeTrail("town-westfarms-summit", cc, HW, { passing: fracTurns(wc2, cc, 0.6) });
   var wd = walkContour(M.x + 6, M.z - 6, -1, 90);
   var D = makeTrail("mill-eastfarms", [[M.x, M.z]].concat(wd.filter(function(p, i) {
     return i % 6 === 0;
@@ -1464,25 +1464,25 @@ CM.buildVegetation = function() {
   tries = 0;
   while (bans.length < Q.banana && tries < 2e4) {
     tries++;
-    var a = rng2() * 6.283, r, mode2 = rng2(), bx, bz;
+    var a = rng2() * 6.283, r, mode2 = rng2(), bx2, bz;
     if (mode2 < 0.45) {
       r = 40 + rng2() * 95;
-      bx = Math.cos(a) * r;
+      bx2 = Math.cos(a) * r;
       bz = Math.sin(a) * r;
-      if (CM.farmW(bx, bz) < 0.3 || rng2() < 0.5) continue;
+      if (CM.farmW(bx2, bz) < 0.3 || rng2() < 0.5) continue;
     } else if (mode2 < 0.75) {
       var c = rng2() < 0.5 ? CM.V : CM.T;
       var rr2 = (c === CM.T ? 22 : 14) + rng2() * 26;
-      bx = c.x + Math.cos(a) * rr2;
+      bx2 = c.x + Math.cos(a) * rr2;
       bz = c.z + Math.sin(a) * rr2;
     } else {
       r = 120 + rng2() * 110;
-      bx = Math.cos(a) * r;
+      bx2 = Math.cos(a) * r;
       bz = Math.sin(a) * r;
     }
-    if (!okSpot(bx, bz, 1.8, 2.2, 0.9)) continue;
+    if (!okSpot(bx2, bz, 1.8, 2.2, 0.9)) continue;
     var gg = 0.85 + rng2() * 0.3;
-    bans.push({ x: bx, y: CM.meshH(bx, bz) - 0.1, z: bz, ry: rng2() * 6.28, s: 0.9 + rng2() * 0.6, c: [gg, gg, gg * 0.92] });
+    bans.push({ x: bx2, y: CM.meshH(bx2, bz) - 0.1, z: bz, ry: rng2() * 6.28, s: 0.9 + rng2() * 0.6, c: [gg, gg, gg * 0.92] });
   }
   if (CM.churchVeg) {
     CM.churchVeg.ban.forEach(function(w2) {
@@ -1791,10 +1791,13 @@ function box(B, x0, y0, z0, x1, y1, z1, col, tw, o) {
   if (!o.nt) quad(B, [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], col, tw, true);
   if (o.bot) quad(B, [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], col, tw, true);
 }
-var ICO = null;
-function blob(B, x, y, z, r, col, sy) {
-  if (!ICO) ICO = nonIdx(new THREE.IcosahedronGeometry(1, 1));
-  var P = ICO.attributes.position;
+var ICO = null, ICO2 = null;
+function blob(B, x, y, z, r, col, sy, lo) {
+  if (!ICO) {
+    ICO = nonIdx(new THREE.IcosahedronGeometry(1, 1));
+    ICO2 = nonIdx(new THREE.IcosahedronGeometry(1, 2));
+  }
+  var P = (r >= 0.2 && !lo ? ICO2 : ICO).attributes.position;
   sy = sy || 1;
   for (var i = 0; i < P.count; i += 3) {
     for (var k = 0; k < 3; k++) {
@@ -1873,10 +1876,10 @@ var COR = [], CGRID = {}, CC = 8;
 function corKey(i, j) {
   return i * 10007 + j;
 }
-function addCor(ax, az, bx, bz, hw, kind) {
-  var s = { ax, az, bx, bz, hw, kind };
+function addCor(ax, az, bx2, bz, hw, kind) {
+  var s = { ax, az, bx: bx2, bz, hw, kind };
   COR.push(s);
-  var i0 = Math.floor(Math.min(ax, bx) / CC), i1 = Math.floor(Math.max(ax, bx) / CC), j0 = Math.floor(Math.min(az, bz) / CC), j1 = Math.floor(Math.max(az, bz) / CC);
+  var i0 = Math.floor(Math.min(ax, bx2) / CC), i1 = Math.floor(Math.max(ax, bx2) / CC), j0 = Math.floor(Math.min(az, bz) / CC), j1 = Math.floor(Math.max(az, bz) / CC);
   for (var i = i0; i <= i1; i++) for (var j = j0; j <= j1; j++) {
     var k = corKey(i, j);
     (CGRID[k] || (CGRID[k] = [])).push(s);
@@ -1924,8 +1927,8 @@ function ptRect(px, pz, hx, hz) {
   var dx = Math.max(Math.abs(px) - hx, 0), dz = Math.max(Math.abs(pz) - hz, 0);
   return Math.sqrt(dx * dx + dz * dz);
 }
-function ptSeg(px, pz, ax, az, bx, bz) {
-  var vx = bx - ax, vz = bz - az, L = vx * vx + vz * vz;
+function ptSeg(px, pz, ax, az, bx2, bz) {
+  var vx = bx2 - ax, vz = bz - az, L = vx * vx + vz * vz;
   var t = L ? U.clamp(((px - ax) * vx + (pz - az) * vz) / L, 0, 1) : 0;
   var x = ax + vx * t - px, z = az + vz * t - pz;
   return Math.sqrt(x * x + z * z);
@@ -2129,12 +2132,18 @@ function bouga(x, y, z, h) {
     blob(BLD.plain, x + Math.cos(a) * rr2, y + U.rr(0.3, h), z + Math.sin(a) * rr2, U.rr(0.16, 0.3), U.rng() < 0.75 ? [0.78 + U.rng() * 0.15, 0.16, 0.48 + U.rng() * 0.1] : [0.26, 0.45, 0.2]);
   }
 }
+function plinth(x0, z0, x1, z1, drop, top, col, tw) {
+  if (drop > 0.45) {
+    box(BLD.stone, x0 - 0.03, -drop - 0.25, z0 - 0.03, x1 + 0.03, 0.02, z1 + 0.03, [0.92, 0.86, 0.78], 1.3, { nt: true });
+    box(BLD.plaster, x0, 0, z0, x1, top, z1, col, tw);
+  } else box(BLD.plaster, x0, -drop - 0.25, z0, x1, top, z1, col, tw, {});
+}
 function makeHouse(o) {
   var w = o.w, d = o.d, h = o.h, W = w / 2, D = d / 2, pl = 0.28;
   var wall = hexC(o.wall), band = hexC(o.band), shut = o.shut, foundC = [0.66, 0.62, 0.56];
   AOY.base = pl;
   AOY.top = pl + h;
-  box(BLD.plaster, -W - 0.08, -o.drop - 0.25, -D - 0.08, W + 0.08, pl, D + 0.08, foundC, 1.5, {});
+  plinth(-W - 0.08, -D - 0.08, W + 0.08, D + 0.08, o.drop, pl, foundC, 1.5);
   var wallB = o.wooden ? BLD.wood : BLD.plaster;
   if (!o.wooden) {
     box(BLD.plaster, -W, pl, -D, W, pl + 0.85, D, band, 2.2, { nt: true });
@@ -2162,7 +2171,7 @@ function makeHouse(o) {
   }
   if (o.porch) {
     var pd = o.pd, pz0 = D, pz1 = D + pd, pc = hexC(9071178);
-    box(BLD.plaster, -W, -o.drop - 0.25, pz0, W, pl - 0.04, pz1, [0.72, 0.66, 0.6], 1.4);
+    plinth(-W, pz0, W, pz1, o.drop, pl - 0.04, [0.72, 0.66, 0.6], 1.4);
     var py0 = eave - 0.12, py1 = eave - 0.72;
     [-W + 0.12, 0, W - 0.12].forEach(function(x2, i) {
       if (i === 1 && w < 5.6) return;
@@ -2252,7 +2261,7 @@ function makeCoop(o) {
   var W = 5.2, D = 3.6, h = 3.4, pl = 0.3, wall = hexC(15784358), band = hexC(4161456);
   AOY.base = pl;
   AOY.top = pl + h;
-  box(BLD.plaster, -W - 0.1, -o.drop - 0.25, -D - 0.1, W + 0.1, pl, D + 0.1, [0.78, 0.74, 0.68], 1.5);
+  plinth(-W - 0.1, -D - 0.1, W + 0.1, D + 0.1, o.drop, pl, [0.78, 0.74, 0.68], 1.5);
   box(BLD.plaster, -W, pl, -D, W, pl + 1, D, band, 2.2, { nt: true });
   box(BLD.plaster, -W, pl + 1, -D, W, pl + h, D, wall, 2.2, { nt: true });
   doorAt(W, D, -1.8, 1.7, pl + 2.5, hexC(6963236));
@@ -2270,7 +2279,7 @@ function makeCoop(o) {
   box(BLD.wood, -2.4, pl + h - 0.55, D + 0.05, 2.4, pl + h + 0.25, D + 0.18, hexC(9067051), 1.2);
   box(BLD.plain, -2.2, pl + h - 0.4, D + 0.18, 2.2, pl + h + 0.1, D + 0.2, hexC(15983544), 1);
   var pd = 2.2, pz1 = D + pd;
-  box(BLD.plaster, -W, -o.drop - 0.25, D, W, pl, pz1, [0.7, 0.65, 0.6], 1.4);
+  plinth(-W, D, W, pz1, o.drop, pl, [0.7, 0.65, 0.6], 1.4);
   [-W + 0.15, -1.75, 1.75, W - 0.15].forEach(function(x) {
     box(BLD.wood, x - 0.12, pl, pz1 - 0.3, x + 0.12, pl + h - 0.7, pz1 - 0.06, hexC(8018490), 0.6);
   });
@@ -2286,7 +2295,7 @@ function makeMill(o) {
   var W = 4.2, D = 3.2, h = 3, pl = 0.25, wall = hexC(15919832), conc = [0.74, 0.73, 0.7];
   AOY.base = pl;
   AOY.top = pl + h;
-  box(BLD.plaster, -W - 0.1, -o.drop - 0.25, -D - 0.1, W + 0.1, pl, D + 0.1, [0.75, 0.72, 0.66], 1.5);
+  plinth(-W - 0.1, -D - 0.1, W + 0.1, D + 0.1, o.drop, pl, [0.75, 0.72, 0.66], 1.5);
   box(BLD.plaster, -W, pl, -D, W, pl + h, -D + 0.3, wall, 2.2);
   box(BLD.plaster, -W, pl, -D, -W + 0.3, pl + h, D * 0.2, wall, 2.2);
   windowAt("b", W, D, 1.8, pl + 1.3, 0.8, 0.8, 5212746, true);
@@ -2415,8 +2424,8 @@ function makeChapel(o) {
     box(BLD.plain, u + rw, y, D, u + rw + 0.12, ys, D + 0.07, teal, 1);
     box(BLD.plain, u - rw - 0.18, y - 0.12, D, u + rw + 0.18, y, D + 0.14, teal, 1);
     for (var k3 = 1; k3 < 8; k3++) {
-      var bx = u - rw + k3 * ww / 8, top = ys + rise2 * Math.sqrt(Math.max(0, 1 - Math.pow((bx - u) / rw, 2)));
-      box(BLD.plain, bx - 0.012, y, z + 0.03, bx + 0.012, top, z + 0.05, iron, 1);
+      var bx3 = u - rw + k3 * ww / 8, top = ys + rise2 * Math.sqrt(Math.max(0, 1 - Math.pow((bx3 - u) / rw, 2)));
+      box(BLD.plain, bx3 - 0.012, y, z + 0.03, bx3 + 0.012, top, z + 0.05, iron, 1);
     }
     [y + 0.3, y + 0.62].forEach(function(by) {
       box(BLD.plain, u - rw, by - 0.012, z + 0.05, u + rw, by + 0.012, z + 0.07, iron, 1);
@@ -2866,8 +2875,13 @@ function placeProp(name, cx, cz, r0, r1, h, o) {
       break;
     }
     if (bad) continue;
+    var o2 = {};
+    for (var q in o) o2[q] = o[q];
+    if (!o2.face) o2.face = { x: cx, z: cz };
+    var res = prop3D(name, x, z, h, o2);
+    f.p3d = !!(res && res.p3d);
     PROPS.push(f);
-    return placeSprite(name, x, z, h, o);
+    return res;
   }
   return null;
 }
@@ -2908,12 +2922,12 @@ function decalDisc(cx, cz, r, seg) {
     DI.push(a0, a0 + 1, b0, a0 + 1, b0 + 1, b0);
   }
 }
-function decalPath(ax, az, bx, bz, w) {
-  var L = Math.hypot(bx - ax, bz - az);
+function decalPath(ax, az, bx2, bz, w) {
+  var L = Math.hypot(bx2 - ax, bz - az);
   if (L < 0.5) return;
-  var n = Math.max(2, Math.ceil(L / 0.8)), px = -(bz - az) / L, pz = (bx - ax) / L, base = DP.length / 3;
+  var n = Math.max(2, Math.ceil(L / 0.8)), px = -(bz - az) / L, pz = (bx2 - ax) / L, base = DP.length / 3;
   for (var i = 0; i <= n; i++) {
-    var t = i / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t;
+    var t = i / n, x = ax + (bx2 - ax) * t, z = az + (bz - az) * t;
     [-1, 1].forEach(function(sd) {
       var X = x + px * w * 0.5 * sd, Z = z + pz * w * 0.5 * sd;
       DP.push(X, CM.meshH(X, Z) + 0.06, Z);
@@ -2966,10 +2980,10 @@ CM.buildSettlements = function() {
     placeProp("sackpair", co.x, co.z, 6, 10, 1.1, { br: 0.8 });
     placeProp("crates", co.x, co.z, 6, 10, 1.8, { br: 1.4 });
   }
-  CM.truckS = placeSprite("truck", T2.x + 9, T2.z + 13, 3.3, { br: 3.5 });
+  CM.truckS = prop3D("truck", T2.x + 9, T2.z + 13, 3.3, { br: 3.5 });
   for (var b = 0; b < 3; b++) {
-    var a = b * 2.1 + 0.5;
-    placeSprite("bench", T2.x - 5 + Math.cos(a) * 4.2, T2.z + 2 + Math.sin(a) * 4.2, 1.05, { flip: b % 2 === 1, br: 0.8, push: 0.2 });
+    var a = b * 2.1 + 0.5, bx0 = T2.x - 5 + Math.cos(a) * 4.2, bz0 = T2.z + 2 + Math.sin(a) * 4.2;
+    prop3D("bench", bx0, bz0, 1.05, { br: 0.8, face: { x: bx0 + Math.cos(a) * 4, z: bz0 + Math.sin(a) * 4 } });
   }
   var mi = CM.place3D("mill", M2.x, M2.z, 7, 22, { P: { hx: 7.6, hz: 3.9, cz: 0, cx: 2.75 }, a0: 0.8 });
   if (mi) {
@@ -2977,7 +2991,7 @@ CM.buildSettlements = function() {
     placeProp("sackpair", mi.x, mi.z, 7, 11, 1.1, { br: 0.8 });
     placeProp("sackstack", mi.x, mi.z, 7, 12, 1.6, { br: 1 });
   }
-  if (CM.gamePlace) CM.gamePlace(placeSprite, blocked, trailD, slopeAt, BLOCK);
+  if (CM.gamePlace) CM.gamePlace(prop3D, blocked, trailD, slopeAt, BLOCK);
   var nT = 0, nV = 0;
   for (var k = 0; k < 70 && nT < 14; k++) if (CM.place3D("house", T2.x, T2.z, 12, 38, k > 30 ? { cottage: true } : void 0)) nT++;
   for (k = 0; k < 60 && nV < 10; k++) if (CM.place3D("house", V2.x, V2.z, 6, 26, k > 8 ? { cottage: true } : void 0)) nV++;
@@ -3080,6 +3094,358 @@ CM._probe = function(cx, cz, R) {
   }
   return out;
 };
+function dtri(B, a, b, c, col, tw) {
+  tri(B, a, b, c, col, tw);
+  tri(B, a, c, b, col, tw);
+}
+function dquad(B, a, b, c, d, col, tw) {
+  quad(B, a, b, c, d, col, tw, true);
+  quad(B, d, c, b, a, col, tw, true);
+}
+var P3D = [];
+CM.P3D = P3D;
+function prng(x, z) {
+  var s = Math.floor(x * 73.13) * 7919 + Math.floor(z * 41.7) * 104729 + 12345 >>> 0;
+  return function() {
+    s = s + 1831565813 >>> 0;
+    var t = s;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+var PR = Math.random;
+function prr(a, b) {
+  return a + (b - a) * PR();
+}
+var WOOD0 = [1.15, 0.95, 0.74], WOODD = [0.88, 0.7, 0.52], STRAW = [0.6, 0.37, 0.08], BURL = [0.5, 0.33, 0.15];
+function wc(base, k) {
+  var v = prr(0.84, 1.08) * (k || 1);
+  return [base[0] * v, base[1] * v * prr(0.97, 1.03), base[2] * v];
+}
+function bx(B, x0, y0, z0, x1, y1, z1, col, tw, o) {
+  box(B, Math.min(x0, x1), Math.min(y0, y1), Math.min(z0, z1), Math.max(x0, x1), Math.max(y0, y1), Math.max(z0, z1), col, tw || 0.9, o);
+}
+function tileGable(x0, x1, z0, z1, eave, ridge, col) {
+  var B = BLD.tile, zm = (z0 + z1) / 2;
+  quad(B, [x0, eave, z1], [x1, eave, z1], [x1, ridge, zm], [x0, ridge, zm], col, 1.7, true);
+  quad(B, [x1, eave, z0], [x0, eave, z0], [x0, ridge, zm], [x1, ridge, zm], col, 1.7, true);
+  bx(B, x0, eave - 0.07, z1 - 0.08, x1, eave + 0.02, z1 + 0.03, shade(col, 0.78), 1.2);
+  bx(B, x0, eave - 0.07, z0 - 0.03, x1, eave + 0.02, z0 + 0.08, shade(col, 0.78), 1.2);
+  bx(B, x0 - 0.04, ridge - 0.05, zm - 0.13, x1 + 0.04, ridge + 0.1, zm + 0.13, shade(col, 0.84), 1.2);
+  var fw = WOODD;
+  [x0 + 0.02, x1 - 0.02].forEach(function(x) {
+    beam(BLD.wood, [x, eave - 0.06, z1 + 0.02], [x, ridge - 0.02, zm], 0.06, 0.16, fw, 0.8);
+    beam(BLD.wood, [x, eave - 0.06, z0 - 0.02], [x, ridge - 0.02, zm], 0.06, 0.16, fw, 0.8);
+  });
+}
+function post(x, z, y0, y1, w, col) {
+  bx(BLD.wood, x - w, y0, z - w, x + w, y1, z + w, col || wc(WOODD), 0.7);
+}
+function fence(ax, az, bx2, bz, y0, col) {
+  var L = Math.hypot(bx2 - ax, bz - az), n = Math.max(1, Math.round(L / 1.1));
+  for (var i = 0; i <= n; i++) {
+    var t = i / n;
+    post(ax + (bx2 - ax) * t, az + (bz - az) * t, y0, 1.05, 0.06);
+  }
+  [0.45, 0.88].forEach(function(h) {
+    beam(BLD.wood, [ax, h, az], [bx2, h, bz], 0.09, 0.05, wc(col || WOOD0), 0.8);
+  });
+}
+function hay(x, z, r, y) {
+  for (var i = 0; i < 14; i++) {
+    var a = i * 2.4, rr2 = i ? r * prr(0.25, 0.6) : 0, s = i ? prr(0.45, 0.7) * r : r * 0.85;
+    var k = prr(0.88, 1.06);
+    blob(BLD.plain, x + Math.cos(a) * rr2, y + s * 0.35, z + Math.sin(a) * rr2, s, [STRAW[0] * k, STRAW[1] * k, STRAW[2] * k * 0.95], 0.62);
+  }
+}
+function bale(x0, y0, z0, x1, y1, z1) {
+  var c = wc(STRAW);
+  bx(BLD.plaster, x0, y0, z0, x1, y1, z1, c, 0.6);
+  var tw = [0.45, 0.35, 0.22];
+  var L = x1 - x0;
+  [0.3, 0.7].forEach(function(t) {
+    var x = x0 + L * t;
+    bx(BLD.plain, x - 0.015, y0 - 3e-3, z0 - 8e-3, x + 0.015, y1 + 8e-3, z1 + 8e-3, tw, 1);
+  });
+}
+function sack3(x, y, z, s, lying, ry) {
+  var c = wc(BURL);
+  if (lying) {
+    var cx = Math.cos(ry || 0), sz = Math.sin(ry || 0);
+    for (var k = -1; k <= 1; k++) blob(BLD.plain, x + cx * k * 0.17 * s, y + 0.15 * s, z - sz * k * 0.17 * s, 0.24 * s, shade(c, k ? 0.96 : 1), 0.62, true);
+    return;
+  }
+  blob(BLD.plain, x, y + 0.27 * s, z, 0.27 * s, c, 1.2, true);
+  blob(BLD.plain, x, y + 0.5 * s, z, 0.15 * s, shade(c, 0.95), 0.9);
+  bx(BLD.plain, x - 0.05 * s, y + 0.6 * s, z - 0.05 * s, x + 0.05 * s, y + 0.68 * s, z + 0.05 * s, shade(c, 0.75), 1);
+}
+function crate(x0, y0, z0, s, col) {
+  var c = col || wc(WOOD0);
+  var x1 = x0 + s, y1 = y0 + s * 0.8, z1 = z0 + s * 0.8, f = shade(c, 0.78), e = 0.045;
+  bx(BLD.wood, x0, y0, z0, x1, y1, z1, c, 0.55);
+  [z0 - 0.012, z1 + 0.012].forEach(function(z) {
+    var zz = z < z0 ? z0 - 0.012 : z1;
+    bx(BLD.wood, x0, y0, zz, x1, y0 + e * 1.6, zz + 0.012, f);
+    bx(BLD.wood, x0, y1 - e * 1.6, zz, x1, y1, zz + 0.012, f);
+    bx(BLD.wood, x0, y0, zz, x0 + e * 1.6, y1, zz + 0.012, f);
+    bx(BLD.wood, x1 - e * 1.6, y0, zz, x1, y1, zz + 0.012, f);
+  });
+  for (var i = 1; i < 3; i++) {
+    var x = x0 + s * i / 3;
+    bx(BLD.wood, x - 6e-3, y1, z0, x + 6e-3, y1 + 4e-3, z1, shade(c, 0.6));
+  }
+}
+function wheel(cx, cy, cz, r, w) {
+  var n = 14, tyre = [0.16, 0.15, 0.14], hub = [0.62, 0.6, 0.56];
+  for (var i = 0; i < n; i++) {
+    var a0 = i / n * 6.2832, a1 = (i + 1) / n * 6.2832;
+    var y0 = cy + Math.cos(a0) * r, x0 = cx + Math.sin(a0) * r, y1 = cy + Math.cos(a1) * r, x1 = cx + Math.sin(a1) * r;
+    quad(BLD.plain, [x0, y0, cz + w], [x1, y1, cz + w], [x1, y1, cz - w], [x0, y0, cz - w], tyre, 1, true);
+    tri(BLD.plain, [cx, cy, cz + w], [x0, y0, cz + w], [x1, y1, cz + w], tyre, 1);
+    tri(BLD.plain, [cx, cy, cz - w], [x1, y1, cz - w], [x0, y0, cz - w], tyre, 1);
+  }
+  [w + 4e-3, -w - 4e-3].forEach(function(o) {
+    var z = cz + o, rr2 = r * 0.55;
+    for (var i2 = 0; i2 < 10; i2++) {
+      var a02 = i2 / 10 * 6.2832, a12 = (i2 + 1) / 10 * 6.2832;
+      if (o > 0) tri(BLD.plain, [cx, cy, z], [cx + Math.sin(a02) * rr2, cy + Math.cos(a02) * rr2, z], [cx + Math.sin(a12) * rr2, cy + Math.cos(a12) * rr2, z], hub, 1);
+      else tri(BLD.plain, [cx, cy, z], [cx + Math.sin(a12) * rr2, cy + Math.cos(a12) * rr2, z], [cx + Math.sin(a02) * rr2, cy + Math.cos(a02) * rr2, z], hub, 1);
+    }
+  });
+}
+function kitCorral(dn) {
+  var roofC = shade([1, 1, 1], prr(0.88, 0.98));
+  AOY.base = 0;
+  AOY.top = 2.25;
+  var sx0 = -2.5, sx1 = 0.4, sz0 = -2, sz1 = 0.5, eave = 2.15, ridge = 3;
+  [[sx0, sz0], [sx1, sz0], [sx0, sz1], [sx1, sz1]].forEach(function(p) {
+    post(p[0], p[1], -dn, eave, 0.1, wc(WOODD, 0.95));
+  });
+  [sz0, sz1].forEach(function(z2) {
+    bx(BLD.wood, sx0 - 0.12, eave - 0.16, z2 - 0.08, sx1 + 0.12, eave, z2 + 0.08, wc(WOODD));
+    beam(BLD.wood, [sx0 + 0.08, eave - 0.7, z2], [sx0 + 0.6, eave - 0.12, z2], 0.08, 0.08, wc(WOODD), 0.6);
+    beam(BLD.wood, [sx1 - 0.08, eave - 0.7, z2], [sx1 - 0.6, eave - 0.12, z2], 0.08, 0.08, wc(WOODD), 0.6);
+  });
+  [sx0, sx1].forEach(function(x2) {
+    bx(BLD.wood, x2 - 0.08, eave - 0.16, sz0, x2 + 0.08, eave, sz1, wc(WOODD));
+  });
+  tileGable(sx0 - 0.45, sx1 + 0.45, sz0 - 0.5, sz1 + 0.5, eave - 0.1, ridge, roofC);
+  for (var x = sx0 + 0.1; x < sx1 - 0.05; x += 0.24) bx(BLD.wood, x, -dn, sz0 - 0.05, x + 0.22, eave - 0.16, sz0 + 0.02, wc(WOOD0, 0.95), 0.6);
+  for (var z = sz0 + 0.1; z < sz1 - 0.05; z += 0.24) bx(BLD.wood, sx0 - 0.05, -dn, z, sx0 + 0.02, 1.25, z + 0.22, wc(WOOD0, 0.95), 0.6);
+  quad(BLD.plain, [sx0 + 0.05, 0.03, sz1], [sx1, 0.03, sz1], [sx1, 0.03, sz0 + 0.05], [sx0 + 0.05, 0.03, sz0 + 0.05], shade(STRAW, 0.72), 1, true);
+  hay(-1.55, -1.15, 0.95, 0);
+  bale(-0.6, 0, -1.75, 0.3, 0.42, -1.25);
+  bale(-0.55, 0.42, -1.72, 0.25, 0.84, -1.28);
+  bale(-2.3, 0, 0, -1.4, 0.42, 0.42);
+  for (var i = 0; i < 14; i++) blob(BLD.plain, prr(-2.2, 0.2), 0.03, prr(-1.8, 0.4), prr(0.08, 0.16), shade(STRAW, prr(0.8, 1)), 0.25);
+  fence(sx1, sz0, 2.6, sz0, -dn);
+  fence(2.6, sz0, 2.6, 2, -dn);
+  fence(2.6, 2, 2, 2, -dn);
+  fence(1, 2, sx1, 2, -dn);
+  fence(sx1, 2, sx1, sz1 + 0.02, -dn);
+  fence(sx0, sz1, sx0, 2, -dn);
+  fence(sx0, 2, -1.3, 2, -dn);
+  beam(BLD.wood, [1, 0.45, 2], [1.35, 0.45, 1.15], 0.1, 0.05, wc(WOOD0), 0.7);
+  beam(BLD.wood, [1, 0.88, 2], [1.35, 0.88, 1.15], 0.1, 0.05, wc(WOOD0), 0.7);
+  var tx0 = 1, tx1 = 2.2, tz0 = -1, tz1 = -0.45, th = 0.5, tc = wc(WOODD, 1.05);
+  bx(BLD.wood, tx0, -dn, tz0, tx1, 0.08, tz1, tc);
+  bx(BLD.wood, tx0, 0.08, tz0, tx1, th, tz0 + 0.06, tc);
+  bx(BLD.wood, tx0, 0.08, tz1 - 0.06, tx1, th, tz1, tc);
+  bx(BLD.wood, tx0, 0.08, tz0, tx0 + 0.06, th, tz1, tc);
+  bx(BLD.wood, tx1 - 0.06, 0.08, tz0, tx1, th, tz1, tc);
+  quad(BLD.plain, [tx0 + 0.06, th - 0.08, tz1 - 0.06], [tx1 - 0.06, th - 0.08, tz1 - 0.06], [tx1 - 0.06, th - 0.08, tz0 + 0.06], [tx0 + 0.06, th - 0.08, tz0 + 0.06], [0.36, 0.5, 0.54], 1, true);
+  var bkc = [0.4, 0.41, 0.43];
+  for (var k = 0; k < 8; k++) {
+    var a0 = k / 8 * 6.283, a1 = (k + 1) / 8 * 6.283;
+    quad(BLD.plain, [2 + Math.cos(a0) * 0.16, 0, 0.3 + Math.sin(a0) * 0.16], [2 + Math.cos(a1) * 0.16, 0, 0.3 + Math.sin(a1) * 0.16], [2 + Math.cos(a1) * 0.19, 0.32, 0.3 + Math.sin(a1) * 0.19], [2 + Math.cos(a0) * 0.19, 0.32, 0.3 + Math.sin(a0) * 0.19], shade(bkc, 0.8 + 0.2 * Math.cos(a0)), 1, true);
+  }
+  beam(BLD.wood, [sx1 + 0.12, 0, sz1 + 0.35], [sx1 + 0.18, 1.7, sz1 + 0.12], 0.04, 0.04, WOOD0, 0.5);
+  AOY.base = 0;
+  AOY.top = 99;
+  return { hx: 2.75, hz: 2.15 };
+}
+function kitCrates() {
+  AOY.base = 0;
+  AOY.top = 1.6;
+  crate(-0.75, 0, -0.45, 0.8);
+  crate(0.1, 0, -0.4, 0.7, wc(WOOD0, 0.92));
+  crate(-0.6, 0.64, -0.38, 0.65, wc(WOOD0, 1.04));
+  sack3(0.75, 0, 0.25, 1);
+  sack3(-0.15, 0, 0.45, 0.8, true, 0.4);
+  beam(BLD.wood, [0.25, 0, 0.5], [0.42, 1.35, -0.05], 0.035, 0.035, WOOD0, 0.5);
+  bx(BLD.plain, 0.13, 0, 0.47, 0.37, 0.3, 0.52, [0.55, 0.55, 0.57]);
+  AOY.top = 99;
+  return { hx: 0.95, hz: 0.65 };
+}
+function kitSackStack(s) {
+  AOY.base = 0;
+  AOY.top = 1.2;
+  var rows = [3, 2, 1];
+  var y = 0;
+  rows.forEach(function(n, j) {
+    for (var i = 0; i < n; i++) sack3((i - (n - 1) / 2) * 0.52, y, j % 2 ? 0.04 : -0.03, s, true, Math.PI / 2);
+    y += 0.26 * s;
+  });
+  AOY.top = 99;
+  return { hx: 0.85, hz: 0.45 };
+}
+function kitSackPair(s) {
+  AOY.base = 0;
+  AOY.top = 1;
+  sack3(-0.22, 0, 0, s);
+  sack3(0.24, 0, 0.06, s * 0.92);
+  AOY.top = 99;
+  return { hx: 0.55, hz: 0.4 };
+}
+function kitBench() {
+  AOY.base = 0;
+  AOY.top = 1;
+  var c = wc(WOOD0);
+  [-0.6, 0.6].forEach(function(x) {
+    bx(BLD.wood, x - 0.05, 0, -0.2, x + 0.05, 0.42, -0.12, shade(c, 0.8));
+    bx(BLD.wood, x - 0.05, 0, 0.12, x + 0.05, 0.42, 0.2, shade(c, 0.8));
+    bx(BLD.wood, x - 0.05, 0.42, -0.24, x + 0.05, 0.9, -0.17, shade(c, 0.8));
+  });
+  for (var i = 0; i < 3; i++) {
+    var z = -0.2 + i * 0.14;
+    bx(BLD.wood, -0.75, 0.42, z, 0.75, 0.47, z + 0.12, wc(WOOD0));
+  }
+  bx(BLD.wood, -0.75, 0.6, -0.23, 0.75, 0.72, -0.18, wc(WOOD0));
+  bx(BLD.wood, -0.75, 0.78, -0.23, 0.75, 0.9, -0.18, wc(WOOD0));
+  AOY.top = 99;
+  return { hx: 0.78, hz: 0.26 };
+}
+function kitSign() {
+  AOY.base = 0;
+  AOY.top = 2;
+  post(0, 0, -0.3, 2, 0.06, wc(WOODD));
+  var bc = wc(WOOD0, 1.05);
+  [[1.45, 1, 0.12], [1.05, -1, -0.1]].forEach(function(a) {
+    var y = a[0], d = a[1], z = a[2] + 0.07, x0 = d > 0 ? 0.05 : -0.75, x1 = d > 0 ? 0.75 : -0.05, tip = d > 0 ? x1 + 0.2 : x0 - 0.2, xb = d > 0 ? x1 : x0;
+    bx(BLD.wood, x0, y - 0.12, z - 0.03, x1, y + 0.12, z + 0.03, bc, 0.6);
+    dtri(BLD.wood, [xb, y - 0.12, z + 0.03], [tip, y, z + 0.03], [xb, y + 0.12, z + 0.03], bc, 0.6);
+    dtri(BLD.wood, [xb, y + 0.12, z - 0.03], [tip, y, z - 0.03], [xb, y - 0.12, z - 0.03], bc, 0.6);
+    dquad(BLD.wood, [xb, y + 0.12, z + 0.03], [tip, y, z + 0.03], [tip, y, z - 0.03], [xb, y + 0.12, z - 0.03], bc, 0.6);
+    dquad(BLD.wood, [tip, y, z + 0.03], [xb, y - 0.12, z + 0.03], [xb, y - 0.12, z - 0.03], [tip, y, z - 0.03], bc, 0.6);
+    bx(BLD.plain, Math.min(x0, x1) + 0.1, y - 0.03, z + 0.03, Math.max(x0, x1) - 0.1, y + 0.03, z + 0.034, [0.95, 0.92, 0.82]);
+  });
+  AOY.top = 99;
+  return { hx: 0.3, hz: 0.3 };
+}
+function kitTruck() {
+  AOY.base = -1;
+  AOY.top = 99;
+  var blue = [0.2, 0.38, 0.6], blueD = shade(blue, 0.78), chrome = [0.78, 0.78, 0.76], dark = [0.18, 0.18, 0.19], r = 0.42, y0 = r;
+  bx(BLD.plain, -2.2, y0 - 0.12, -0.55, 1.9, y0 + 0.08, 0.55, dark);
+  bx(BLD.plain, 0.35, y0 + 0.08, -0.85, 1.35, y0 + 1.45, 0.85, blue);
+  bx(BLD.plain, 1.35, y0 + 0.08, -0.7, 2.35, y0 + 0.9, 0.7, blue);
+  bx(BLD.plain, 0.4, y0 + 1.45, -0.8, 1.3, y0 + 1.52, 0.8, blueD);
+  [-0.86, 0.86].forEach(function(z) {
+    var zz = z > 0 ? z : z - 4e-3;
+    quad(BLD.dark, [z > 0 ? 0.5 : 1.25, y0 + 0.95, z + (z > 0 ? 4e-3 : -4e-3)], [z > 0 ? 1.25 : 0.5, y0 + 0.95, z + (z > 0 ? 4e-3 : -4e-3)], [z > 0 ? 1.25 : 0.5, y0 + 1.38, z + (z > 0 ? 4e-3 : -4e-3)], [z > 0 ? 0.5 : 1.25, y0 + 1.38, z + (z > 0 ? 4e-3 : -4e-3)], [1, 1, 1], 1);
+  });
+  quad(BLD.dark, [1.355, y0 + 0.98, 0.75], [1.355, y0 + 0.98, -0.75], [1.355, y0 + 1.38, -0.75], [1.355, y0 + 1.38, 0.75], [1, 1, 1], 1);
+  bx(BLD.plain, 2.35, y0 + 0.15, -0.62, 2.42, y0 + 0.8, 0.62, chrome);
+  for (var g = 0; g < 5; g++) bx(BLD.plain, 2.42, y0 + 0.25 + g * 0.11, -0.5, 2.44, y0 + 0.3 + g * 0.11, 0.5, dark);
+  [-0.45, 0.45].forEach(function(z) {
+    bx(BLD.plain, 2.36, y0 + 0.72, z - 0.12, 2.46, y0 + 0.9, z + 0.12, [1, 0.96, 0.82]);
+  });
+  bx(BLD.plain, 2.3, y0 - 0.05, -0.85, 2.5, y0 + 0.12, 0.85, chrome);
+  [[1.75, 1], [-1.4, 1]].forEach(function(p) {
+    [-0.8, 0.8].forEach(function(z) {
+      var sg = z > 0 ? 1 : -1;
+      bx(BLD.plain, p[0] - 0.55, y0 + 0.35, z - 0.12 * sg, p[0] + 0.55, y0 + 0.5, z + 0.1 * sg, blueD);
+    });
+  });
+  [1.75, -1.4].forEach(function(x) {
+    wheel(x, r, 0.78, r, 0.13);
+    wheel(x, r, -0.78, r, 0.13);
+  });
+  var bc = wc(WOOD0);
+  bx(BLD.wood, -2.45, y0 + 0.08, -0.95, 0.25, y0 + 0.22, 0.95, bc);
+  [-0.95, 0.95].forEach(function(z) {
+    for (var k = 0; k < 3; k++) bx(BLD.wood, -2.45, y0 + 0.35 + k * 0.25, z - 0.04, 0.25, y0 + 0.5 + k * 0.25, z + 0.04, wc(WOOD0));
+    for (var x = -2.4; x <= 0.25; x += 0.66) bx(BLD.wood, x - 0.04, y0 + 0.22, z - 0.06, x + 0.04, y0 + 1.05, z + 0.06, wc(WOODD));
+  });
+  for (var k2 = 0; k2 < 3; k2++) bx(BLD.wood, -2.49, y0 + 0.35 + k2 * 0.25, -0.95, -2.41, y0 + 0.5 + k2 * 0.25, 0.95, wc(WOOD0));
+  for (var i = 0; i < 4; i++) for (var j = 0; j < 2; j++) sack3(-2.1 + i * 0.55, y0 + 0.22, -0.42 + j * 0.84, 1, true, 0);
+  for (var i2 = 0; i2 < 3; i2++) sack3(-1.85 + i2 * 0.55, y0 + 0.48, 0, 1, true, 0);
+  return { hx: 2.5, hz: 1 };
+}
+var KITS = { corral: kitCorral, crates: kitCrates, sackstack: function(h) {
+  return kitSackStack(h / 1.6);
+}, sackpair: function(h) {
+  return kitSackPair(h / 1.1);
+}, bench: kitBench, signpost: kitSign, truck: kitTruck };
+function roadDir(x, z) {
+  var L = corNear(x - 24, z - 24, x + 24, z + 24), best = null, bd = 1e9;
+  L.forEach(function(s) {
+    var vx = s.bx - s.ax, vz = s.bz - s.az, LL = vx * vx + vz * vz;
+    var t = LL ? U.clamp(((x - s.ax) * vx + (z - s.az) * vz) / LL, 0, 1) : 0;
+    var px = s.ax + vx * t, pz = s.az + vz * t;
+    var d = (px - x) * (px - x) + (pz - z) * (pz - z);
+    if (d < bd) {
+      bd = d;
+      best = { px, pz, vx, vz };
+    }
+  });
+  return best;
+}
+function prop3D(name, x, z, h, o) {
+  o = o || {};
+  var kit = KITS[name];
+  if (!kit) return placeSprite(name, x, z, h, o);
+  PR = prng(x, z);
+  var ry = 0, rd = roadDir(x, z);
+  if (name === "truck" && rd) {
+    ry = Math.atan2(rd.px - x, rd.pz - z);
+  } else if (o.face) ry = Math.atan2(o.face.x - x, o.face.z - z);
+  else if (rd) ry = Math.atan2(rd.px - x, rd.pz - z);
+  var ext = { corral: [2.75, 2.15], truck: [2.5, 1], crates: [0.95, 0.65], bench: [0.78, 0.26] }[name];
+  if (ext && (name === "corral" || name === "truck")) {
+    var best = null;
+    for (var k = 0; k < 60 && !best; k++) {
+      var a = k * 2.39996, rr2 = k ? 0.6 + k * 0.12 : 0, tx = x + Math.cos(a) * rr2, tz = z + Math.sin(a) * rr2, ty = ry;
+      if (name === "truck") {
+        var r2 = roadDir(tx, tz);
+        if (r2) ty = Math.atan2(r2.px - tx, r2.pz - tz);
+      } else if (o.face) ty = Math.atan2(o.face.x - tx, o.face.z - tz);
+      var f = { x: tx, z: tz, ry: ty, hx: ext[0], hz: ext[1] };
+      if (roadGap(f).gap < (name === "truck" ? 0.35 : 0.6) || nodeGap(f) < 0.2) continue;
+      var bad = false;
+      for (var i = 0; i < FOOT.length; i++) if (obbOverlap(f, FOOT[i], 0.4)) {
+        bad = true;
+        break;
+      }
+      if (bad) continue;
+      var cs = corners(f), hs = cs.map(function(c) {
+        return CM.meshH(c[0], c[1]);
+      });
+      if (Math.max.apply(null, hs) - Math.min.apply(null, hs) > 1.6) continue;
+      best = f;
+    }
+    if (best) {
+      x = best.x;
+      z = best.z;
+      ry = best.ry;
+    }
+  }
+  var e = ext || [0.6, 0.6], cs2 = corners({ x, z, ry, hx: e[0] * 0.8, hz: e[1] * 0.8 }).concat([[x, z]]), hs2 = cs2.map(function(c) {
+    return CM.meshH(c[0], c[1]);
+  });
+  var y = Math.max.apply(null, hs2), ymin = Math.min.apply(null, hs2);
+  if (name === "truck") y = (y + ymin) / 2 + 0.02;
+  setXF(x, y - 0.02, z, ry);
+  var dim = kit(name === "corral" ? y - ymin + 0.3 : h, y - ymin);
+  setXF(0, 0, 0, 0);
+  var f2 = { x, z, ry, hx: dim.hx, hz: dim.hz, kind: "p3d", name };
+  P3D.push(f2);
+  if (o.block !== false) BLOCK.push({ x, z, r: Math.max(o.br || 0, Math.hypot(dim.hx, dim.hz) * 0.85) });
+  if (o.shadow !== false) CM.shadowFor(x, z, (dim.hx + dim.hz) * 1.05, name === "corral" ? 3 : 1.5);
+  return { x, y, z, ry, w: dim.hx * 2, h, p3d: true };
+}
+CM.prop3D = prop3D;
 var SIDE_CYCLE = [2, 0, 3, 1];
 CM.memberFrame = function(kind, p, yaw, phase, walking, camPos2, camTh) {
   var ca = Math.atan2(camPos2.x - p.x, camPos2.z - p.z);
@@ -3717,8 +4083,8 @@ CM.X = (function() {
   function addCirc(x, z, r) {
     COLS.push({ t: 1, x, z, r });
   }
-  function addSeg(ax, az, bx, bz, r) {
-    COLS.push({ t: 2, ax, az, bx, bz, r });
+  function addSeg(ax, az, bx2, bz, r) {
+    COLS.push({ t: 2, ax, az, bx: bx2, bz, r });
   }
   function toL(o, x, z) {
     var dx = x - o.x, dz = z - o.z;
@@ -3819,8 +4185,8 @@ CM.X = (function() {
       }
       if (!d) return;
       if (d.chapel) {
-        let S2 = function(ax, az, bx, bz) {
-          var a = toW(o, ax, az), b = toW(o, bx, bz);
+        let S2 = function(ax, az, bx2, bz) {
+          var a = toW(o, ax, az), b = toW(o, bx2, bz);
           addSeg(a[0], a[1], b[0], b[1], 0.2);
         };
         var W = d.W + 0.05, D = d.D + 0.05, o = { x: f.ox, z: f.oz, c: Math.cos(f.ry), s: Math.sin(f.ry) };
@@ -3856,7 +4222,11 @@ CM.X = (function() {
       var zf = d.D + (Pp.porch ? Pp.pd : 0.12), zb = d.D + (Pp.yard ? Pp.yd : 0.1);
       addOBB(f.ox, f.oz, f.ry, d.W + 0.12, (zf + zb) / 2, 0, (zf - zb) / 2);
     });
+    (CM.P3D || []).forEach(function(f) {
+      if (Math.hypot(f.x - P.x, f.z - P.z) < R + 8) addOBB(f.x, f.z, f.ry, f.hx + 0.05, f.hz + 0.05);
+    });
     (CM.PROPS || []).forEach(function(f) {
+      if (f.p3d) return;
       if (Math.hypot(f.x - P.x, f.z - P.z) < R + 6) addCirc(f.x, f.z, Math.max(0.35, Math.min(f.hx || 0.6, f.hz || 0.6) * 0.8));
     });
     if (CM.churchPlaque && Math.hypot(CM.churchPlaque.x - P.x, CM.churchPlaque.z - P.z) < R + 6) {
@@ -3865,7 +4235,7 @@ CM.X = (function() {
       if (pl.fence) addOBB(pl.x, pl.z, pl.ry, 0.95, 0.12, 0, -0.62);
     }
     if (CM.ceibaPos && Math.hypot(CM.ceibaPos.x - P.x, CM.ceibaPos.z - P.z) < R + 6) addCirc(CM.ceibaPos.x, CM.ceibaPos.z, 1.15);
-    if (CM.truckS && Math.hypot(CM.truckS.x - P.x, CM.truckS.z - P.z) < R + 6) addCirc(CM.truckS.x, CM.truckS.z, 1.7);
+    if (CM.truckS && !CM.truckS.p3d && Math.hypot(CM.truckS.x - P.x, CM.truckS.z - P.z) < R + 6) addCirc(CM.truckS.x, CM.truckS.z, 1.7);
   }
   function groundAt(x, z) {
     var h = CM.meshH(x, z), P = X.place;
@@ -3919,14 +4289,29 @@ CM.X = (function() {
     if (U.rng() < 0.7) flowers(DB.plain, x, y - 0.45, z, 4, 0.15);
   }
   function bench(B, x0, z0, x1, z1, y) {
-    var col = [0.55, 0.36, 0.22];
-    box(B, Math.min(x0, x1), y + 0.42, Math.min(z0, z1), Math.max(x0, x1), y + 0.48, Math.max(z0, z1), col, 0.8);
-    var lx = Math.abs(x1 - x0) > Math.abs(z1 - z0);
+    var col = [0.84, 0.6, 0.4], leg = [0.6, 0.42, 0.27], xa = Math.min(x0, x1), xb = Math.max(x0, x1), za = Math.min(z0, z1), zb = Math.max(z0, z1);
+    var lx = xb - xa > zb - za, n = 3;
+    for (var i = 0; i < n; i++) {
+      var k = 0.9 + 0.12 * (i * 7 % 3) / 2;
+      if (lx) {
+        var w = (zb - za) / n;
+        box(B, xa, y + 0.42, za + i * w + 0.01, xb, y + 0.47, za + (i + 1) * w - 0.01, shade(col, k), 0.8);
+      } else {
+        var w2 = (xb - xa) / n;
+        box(B, xa + i * w2 + 0.01, y + 0.42, za, xa + (i + 1) * w2 - 0.01, y + 0.47, zb, shade(col, k), 0.8);
+      }
+    }
     [0.08, 0.92].forEach(function(t) {
       var x = x0 + (x1 - x0) * t, z = z0 + (z1 - z0) * t;
-      box(B, x - 0.05, y, z - 0.05, x + 0.05, y + 0.42, z + 0.05, shade(col, 0.8), 0.6);
-      if (lx) box(B, x - 0.05, y, Math.min(z0, z1), x + 0.05, y + 0.42, Math.max(z0, z1), shade(col, 0.8), 0.6);
-      else box(B, Math.min(x0, x1), y, z - 0.05, Math.max(x0, x1), y + 0.42, z + 0.05, shade(col, 0.8), 0.6);
+      if (lx) {
+        box(B, x - 0.04, y, za + 0.03, x + 0.04, y + 0.42, za + 0.11, leg, 0.6);
+        box(B, x - 0.04, y, zb - 0.11, x + 0.04, y + 0.42, zb - 0.03, leg, 0.6);
+        box(B, x - 0.035, y + 0.12, za + 0.03, x + 0.035, y + 0.18, zb - 0.03, leg, 0.6);
+      } else {
+        box(B, xa + 0.03, y, z - 0.04, xa + 0.11, y + 0.42, z + 0.04, leg, 0.6);
+        box(B, xb - 0.11, y, z - 0.04, xb - 0.03, y + 0.42, z + 0.04, leg, 0.6);
+        box(B, xa + 0.03, y + 0.12, z - 0.035, xb - 0.03, y + 0.18, z + 0.035, leg, 0.6);
+      }
     });
   }
   function sack(B, x, y, z, s) {
@@ -3948,14 +4333,14 @@ CM.X = (function() {
   }
   function roofEdges(r) {
     var col = r.col, step2 = CM.isMobile ? 0.36 : 0.25;
-    function row(ax, az, bx, bz, ox2, oz2) {
-      var L = Math.hypot(bx - ax, bz - az), n = Math.max(2, Math.round(L / step2));
+    function row(ax, az, bx2, bz, ox2, oz2) {
+      var L = Math.hypot(bx2 - ax, bz - az), n = Math.max(2, Math.round(L / step2));
       for (var i = 0; i < n; i++) {
-        var t = (i + 0.5) / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t, c = shade(col, i % 2 ? 0.72 : 0.88);
-        var ux = (bx - ax) / L * 0.1, uz = (bz - az) / L * 0.1;
+        var t = (i + 0.5) / n, x = ax + (bx2 - ax) * t, z = az + (bz - az) * t, c = shade(col, i % 2 ? 0.72 : 0.88);
+        var ux = (bx2 - ax) / L * 0.1, uz = (bz - az) / L * 0.1;
         box(DB.tile, Math.min(x - ux, x + ux) - Math.abs(ox2) * 0.12, r.eave - 0.09, Math.min(z - uz, z + uz) - Math.abs(oz2) * 0.12, Math.max(x - ux, x + ux) + Math.abs(ox2) * 0.04, r.eave + 0.035, Math.max(z - uz, z + uz) + Math.abs(oz2) * 0.04, c, 0.5);
       }
-      box(DB.wood, Math.min(ax, bx) - 0.02 - Math.abs(ox2) * 0.06, r.eave - 0.2, Math.min(az, bz) - 0.02 - Math.abs(oz2) * 0.06, Math.max(ax, bx) + 0.02, r.eave - 0.09, Math.max(az, bz) + 0.02, [0.42, 0.28, 0.18], 0.8);
+      box(DB.wood, Math.min(ax, bx2) - 0.02 - Math.abs(ox2) * 0.06, r.eave - 0.2, Math.min(az, bz) - 0.02 - Math.abs(oz2) * 0.06, Math.max(ax, bx2) + 0.02, r.eave - 0.09, Math.max(az, bz) + 0.02, [0.42, 0.28, 0.18], 0.8);
     }
     var W = r.W, D = r.D;
     row(-W, D, W, D, 0, 1);
@@ -4015,16 +4400,16 @@ CM.X = (function() {
         hangPlant(W - 0.55, py1 - 0.06, pz1 - 0.15);
         if (U.rng() < 0.45 && d.W * 2 >= 5) hammock(-W + 0.2, d.W * 2 >= 5.6 ? -0.1 : W - 0.2, pz1 - 0.55, py1 - 0.15);
       } else if (U.rng() < 0.6) {
-        var bx = du > 0 ? du - 2 : du + 0.8;
-        bench(DB.wood, bx, D + 0.25, bx + 1.2, D + 0.6, 0);
+        var bx2 = du > 0 ? du - 2 : du + 0.8;
+        bench(DB.wood, bx2, D + 0.25, bx2 + 1.2, D + 0.6, 0);
       }
     }
     if (d.dock) {
       [-4.4, -3.75, -3.1].forEach(function(x, i) {
         for (var k = 0; k < 2 + i % 2; k++) sack(DB.plain, x, d.pl + k * 0.42, d.D + 1.6, 1.05);
       });
-      box(DB.wood, 2.6, d.pl, d.D + 1.1, 3.5, d.pl + 0.7, d.D + 1.9, [0.6, 0.42, 0.26], 0.8);
-      box(DB.wood, 3, d.pl + 0.7, d.D + 1.2, 3.8, d.pl + 1.2, d.D + 1.8, [0.56, 0.38, 0.22], 0.8);
+      box(DB.wood, 2.6, d.pl, d.D + 1.1, 3.5, d.pl + 0.7, d.D + 1.9, [0.86, 0.62, 0.42], 0.55);
+      box(DB.wood, 3, d.pl + 0.7, d.D + 1.2, 3.8, d.pl + 1.2, d.D + 1.8, [0.78, 0.56, 0.37], 0.55);
     }
   }
   function chapelInterior(f) {
@@ -4076,8 +4461,8 @@ CM.X = (function() {
         tri(DB.sky, [u, ys, z2], [u - Math.cos(a0) * rw, ys + Math.sin(a0) * rise, z2], [u - Math.cos(a1) * rw, ys + Math.sin(a1) * rise, z2], [1, 1, 1], 1);
       }
       for (var k = 1; k < 8; k++) {
-        var bx = u - rw + k * w.w / 8, top = ys + rise * Math.sqrt(Math.max(0, 1 - Math.pow((bx - u) / rw, 2)));
-        box(DB.plain, bx - 0.012, y, z2 - 0.03, bx + 0.012, top, z2 - 0.01, IRON, 1);
+        var bx2 = u - rw + k * w.w / 8, top = ys + rise * Math.sqrt(Math.max(0, 1 - Math.pow((bx2 - u) / rw, 2)));
+        box(DB.plain, bx2 - 0.012, y, z2 - 0.03, bx2 + 0.012, top, z2 - 0.01, IRON, 1);
       }
       box(DB.plain, u - rw - 0.1, y - 0.06, z2 - 0.12, u + rw + 0.1, y, z2, TEAL, 1);
     });
@@ -4131,7 +4516,7 @@ CM.X = (function() {
     if (!s) return;
     var ry = faceTo(s.x, s.z, P.x, P.z);
     setXF(s.x, s.y, s.z, ry);
-    var wd = [0.55, 0.38, 0.24];
+    var wd = [0.82, 0.6, 0.4];
     box(DB.wood, -1.1, 0.8, -0.5, 1.1, 0.88, 0.5, wd, 0.8);
     [[-1.05, -0.45], [1.05, -0.45], [-1.05, 0.45], [1.05, 0.45]].forEach(function(p) {
       box(DB.wood, p[0] - 0.04, -0.2, p[1] - 0.04, p[0] + 0.04, p[1] > 0 ? 2.1 : 2.3, p[1] + 0.04, shade(wd, 0.8), 0.6);
@@ -4250,9 +4635,9 @@ CM.X = (function() {
       var idx = dk.add("sideL0", s2.x, s2.y - 0.02, s2.z, 1.55, {}).i;
       SPRITES.push({ b: dk, i: idx, x: s2.x, y: s2.y - 0.02, z: s2.z, yaw: yaw2, h: 1.55, kind: "dk" });
       setXF(s2.x, s2.y, s2.z, yaw2 + Math.PI / 2);
-      box(DB.wood, -1, -0.2, 0.85, -0.92, 1, 0.93, [0.45, 0.3, 0.18], 0.6);
-      box(DB.wood, 0.92, -0.2, 0.85, 1, 1, 0.93, [0.45, 0.3, 0.18], 0.6);
-      box(DB.wood, -1, 0.9, 0.86, 1, 0.98, 0.92, [0.45, 0.3, 0.18], 0.6);
+      box(DB.wood, -1, -0.2, 0.85, -0.92, 1, 0.93, [0.62, 0.43, 0.28], 0.6);
+      box(DB.wood, 0.92, -0.2, 0.85, 1, 1, 0.93, [0.62, 0.43, 0.28], 0.6);
+      box(DB.wood, -1, 0.9, 0.86, 1, 0.98, 0.92, [0.8, 0.58, 0.38], 0.6);
       addCirc(s2.x, s2.z, 0.75);
       if (j === 0) {
         var ax = s2.x + Math.cos(yaw2) * 1.2, az = s2.z - Math.sin(yaw2) * 1.2;
@@ -5026,6 +5411,7 @@ CM.X = (function() {
 CM.game = (function() {
   "use strict";
   var GN = [], GE = [], NODE = {}, GATES = [], CORRALS = {};
+  CM.CORRALS = CORRALS;
   var SPEED = 4, GAP = 2.3, HEAD = 3.4, STAND_AUTO = 10, MILL_T = 6, FRESH_T = 240;
   var FARM_NAMES = { mirador: "Finca El Mirador", cedros: "Finca Los Cedros", nubes: "Finca Las Nubes", loma: "Finca La Loma", oriente: "Finca Oriente", cumbre: "Finca La Cumbre" };
   function nd(id, type, x, z, name) {
@@ -5133,10 +5519,10 @@ CM.game = (function() {
   CM.graph = { GN, GE, NODE };
   CM.gamePlace = function(place2, blocked2, trailD2, slopeAt2, BLOCK2) {
     CM.ensureGraph();
-    function spot(cx, cz, r0, r1, pad, maxS, seed) {
+    function spot(cx, cz, r0, r12, pad, maxS, seed) {
       var best = null;
       for (var k = 0; k < 160; k++) {
-        var a = seed + k * 2.399, r = r0 + (r1 - r0) * (k * 0.618 % 1);
+        var a = seed + k * 2.399, r = r0 + (r12 - r0) * (k * 0.618 % 1);
         var x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
         if (trailD2(x, z) < pad || blocked2(x, z, pad) || slopeAt2(x, z) > maxS) continue;
         best = { x, z };
@@ -5152,13 +5538,13 @@ CM.game = (function() {
           n.yard = { x: n.x + dx / L * 1.7, z: n.z + dz / L * 1.7 };
         }
         var s2 = spot(n.x, n.z, 2.4, 4.5, 1, 0.8, i * 2.1 + 1);
-        if (s2) place2("sackstack", s2.x, s2.z, 1.3, { br: 0.8 });
+        if (s2) place2("sackstack", s2.x, s2.z, 1.3, { br: 0.8, face: n });
         BLOCK2.push({ x: n.x, z: n.z, r: 3.5 });
       }
       if (n.type === "pass") {
         var s3 = spot(n.x, n.z, 1.8, 3.2, 0.6, 1.2, i * 0.7);
         if (s3) {
-          place2("signpost", s3.x, s3.z, 1.9, { br: 0.5, push: 0.1 });
+          place2("signpost", s3.x, s3.z, 1.9, { br: 0.5, push: 0.1, face: n });
           n.yard = { x: n.x + (n.x - s3.x) * 0.6, z: n.z + (n.z - s3.z) * 0.6 };
         }
         BLOCK2.push({ x: n.x, z: n.z, r: 2.5 });
@@ -5167,16 +5553,16 @@ CM.game = (function() {
     var T2 = CM.T, V2 = CM.V;
     var c1 = spot(T2.x - 6, T2.z - 4, 10, 17, 3.2, 0.35, 4);
     if (c1) {
-      place2("corral", c1.x, c1.z, 4.2, { br: 4.2 });
-      CORRALS.coop = { x: c1.x, z: c1.z };
+      var r1 = place2("corral", c1.x, c1.z, 4.2, { br: 4.2, face: T2 }) || c1;
+      CORRALS.coop = { x: r1.x, z: r1.z };
     }
     var c2 = spot(V2.x, V2.z, 8, 13, 3, 0.4, 2.2);
     if (c2) {
-      place2("corral", c2.x, c2.z, 3.8, { br: 3.8 });
-      CORRALS.village = { x: c2.x, z: c2.z };
+      var r2 = place2("corral", c2.x, c2.z, 3.8, { br: 3.8, face: V2 }) || c2;
+      CORRALS.village = { x: r2.x, z: r2.z };
     }
     var c3 = spot(T2.x + 12, T2.z - 5, 1, 6, 2, 0.4, 0.5);
-    if (c3) place2("crates", c3.x, c3.z, 1.8, { br: 1.4 });
+    if (c3) place2("crates", c3.x, c3.z, 1.8, { br: 1.4, face: T2 });
     ["coop", "village"].forEach(function(h) {
       var c = CORRALS[h], n = NODE[h];
       if (c) n.yard = { x: n.x + (c.x - n.x) * 0.55, z: n.z + (c.z - n.z) * 0.55 };
@@ -8382,11 +8768,11 @@ CM.story = (function() {
       });
     }
     var bw = b.offsetWidth, bh = b.offsetHeight, below = top - bh - 26 < 8;
-    var bx = Math.max(8, Math.min(innerWidth - bw - 8, x - bw / 2));
+    var bx2 = Math.max(8, Math.min(innerWidth - bw - 8, x - bw / 2));
     var by = below ? y + 30 : top - bh - 16;
-    b.style.transform = "translate3d(" + Math.round(bx) + "px," + Math.round(by) + "px,0)";
+    b.style.transform = "translate3d(" + Math.round(bx2) + "px," + Math.round(by) + "px,0)";
     b.classList.toggle("below", below);
-    b.style.setProperty("--ax", Math.round(x - bx) + "px");
+    b.style.setProperty("--ax", Math.round(x - bx2) + "px");
     r.style.transform = "translate3d(" + Math.round(x) + "px," + Math.round(y) + "px,0)";
   }
   setInterval(hintUpdate, 90);
